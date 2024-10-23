@@ -4,7 +4,7 @@ import 'package:news_app/screens/home_screen.dart';
 import 'package:news_app/screens/splash_screen.dart';
 
 Future<void> main() async {
-  await dotenv.load(fileName: "env/.env");
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
