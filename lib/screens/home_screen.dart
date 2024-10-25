@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:news_app/view_model/news_view_model.dart';
 import 'package:news_app/widgets/news_topics_widget.dart';
 
@@ -11,10 +12,16 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
+enum FilterList {bbcNews, bbcSports, independent, reuters, cnn, alJazeera  }
 
 class _HomeScreenState extends State<HomeScreen> {
   NewsViewModel newsViewModel = NewsViewModel();
 
+  FilterList? selectedMenu;
+
+  final format = DateFormat('MMMM dd, yy');
+
+  String name = 'bbc-news';
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height * 1;
@@ -33,14 +40,38 @@ class _HomeScreenState extends State<HomeScreen> {
           'News',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 24),
         ),
+        actions: [
+          PopupMenuButton(
+              initialValue: selectedMenu,
+              icon: Icon(Icons.more_vert),
+              onSelected: (FilterList item){
+                if(FilterList.bbcNews.name == item.name){name = 'bbc-news';}
+                if(FilterList.bbcSports.name == item.name){name = 'bbc-sport';}
+                if(FilterList.independent.name == item.name){name = 'independent';}
+                if(FilterList.reuters.name == item.name){name = 'reuters';}
+                if(FilterList.cnn.name == item.name){name = 'cnn';}
+                if(FilterList.alJazeera.name == item.name){name = 'al-jazeera-english';}
+                setState(() {
+                  selectedMenu = item;
+                });
+              },
+              itemBuilder: (BuildContext context)=> <PopupMenuEntry<FilterList>>[
+            PopupMenuItem<FilterList>(value: FilterList.bbcNews,child: Text('BBC News')),
+            PopupMenuItem<FilterList>(value: FilterList.bbcSports,child: Text('BBC Sports')),
+            PopupMenuItem<FilterList>(value: FilterList.independent,child: Text('Independent')),
+            PopupMenuItem<FilterList>(value: FilterList.reuters,child: Text('Reuters')),
+            PopupMenuItem<FilterList>(value: FilterList.cnn,child: Text('CNN')),
+            PopupMenuItem<FilterList>(value: FilterList.alJazeera,child: Text('Al Jazera')),
+              ])
+        ],
       ),
       body: ListView(
         children: [
           SizedBox(
-            height: height * .55,
+            height: height * .28,
             width: width,
             child: FutureBuilder(
-                future: newsViewModel.fetchNewsChannelsHeadlinesApi(),
+                future: newsViewModel.fetchNewsChannelsHeadlinesApi(name),
                 builder: (BuildContext context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
@@ -54,12 +85,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         scrollDirection: Axis.horizontal,
                         itemCount: snapshot.data!.articles!.length,
                         itemBuilder: (context, index) {
+                          DateTime dateTime = DateTime.parse(snapshot
+                              .data!.articles![index].publishedAt
+                              .toString());
                           return SizedBox(
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
                                 Container(
-                                  height: height * .6,
+                                  height: height * .5,
                                   width: width * .9,
                                   padding: EdgeInsets.symmetric(
                                       horizontal: width * .02),
@@ -81,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 Positioned(
-                                  bottom: 20,
+                                  bottom: 33,
                                   child: Card(
                                     elevation: 5,
                                     color: Colors.white,
@@ -90,10 +124,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                             BorderRadius.circular(12)),
                                     child: Container(
                                       alignment: Alignment.bottomCenter,
-                                      height: height * 22,
+                                      height: height * .1,
+                                      padding: EdgeInsets.all(5),
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
                                           Container(
                                             width: width * .7,
@@ -101,9 +138,47 @@ class _HomeScreenState extends State<HomeScreen> {
                                               snapshot
                                                   .data!.articles![index].title
                                                   .toString(),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
                                               style: GoogleFonts.poppins(
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.w700),
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
+                                          Spacer(),
+                                          Container(
+                                            width: width * .7,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  snapshot
+                                                      .data!
+                                                      .articles![index]
+                                                      .source!
+                                                      .name
+                                                      .toString(),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: GoogleFonts.poppins(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w400),
+                                                ),
+                                                Text(
+                                                  format.format(dateTime),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: GoogleFonts.poppins(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w300),
+                                                ),
+                                              ],
                                             ),
                                           )
                                         ],
